@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "JournalEntry": {
+      "title": "JournalEntry",
+      "description": "User journal entry with chat conversation and reflection summary",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "messages": { "type": "array" },
+        "summary": { "type": "object" },
+        "tags": { "type": "array" },
+        "mood": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["active", "saved", "archived"] }
+      },
+      "required": ["id", "userId", "title", "createdAt", "updatedAt", "messages"]
+    },
+    "Interaction": {
+      "title": "Interaction",
+      "description": "Auditing and interaction summary record",
+      "type": "object",
+      "properties": {
+        "entryId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "messageCount": { "type": "number" },
+        "timestamp": { "type": "string" },
+        "hasSummary": { "type": "boolean" }
+      },
+      "required": ["entryId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/journal_entries/{entryId}": {
+      "schema": "JournalEntry",
+      "description": "User isolated collection of journal reflection entries"
+    },
+    "/users/{userId}/interactions/{interactionId}": {
+      "schema": "Interaction",
+      "description": "Audit trail and interaction records"
+    }
+  }
+}
