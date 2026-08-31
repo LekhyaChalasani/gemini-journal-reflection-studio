@@ -12,10 +12,12 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { JournalSummary, JournalEntry } from '../types';
+import { MoodOverTimeChart } from './MoodOverTimeChart';
 
 interface SummaryInsightsProps {
   summary: JournalSummary | undefined;
   entry: JournalEntry;
+  historyEntries: JournalEntry[];
   onGenerateSummary: () => void;
   isSummarizing: boolean;
   onSaveEntry: () => void;
@@ -27,6 +29,7 @@ interface SummaryInsightsProps {
 export const SummaryInsights: React.FC<SummaryInsightsProps> = ({
   summary,
   entry,
+  historyEntries,
   onGenerateSummary,
   isSummarizing,
   onSaveEntry,
@@ -36,7 +39,8 @@ export const SummaryInsights: React.FC<SummaryInsightsProps> = ({
 }) => {
   if (!summary) {
     return (
-      <div id="empty-summary-view" className="max-w-4xl mx-auto py-12 px-4 text-center">
+      <div id="empty-summary-view" className="max-w-4xl mx-auto py-12 px-4 space-y-6 text-center">
+        <MoodOverTimeChart entries={historyEntries} />
         <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-8 sm:p-12 shadow-xl">
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-4">
             <BrainCircuit className="w-8 h-8" />
@@ -185,6 +189,9 @@ export const SummaryInsights: React.FC<SummaryInsightsProps> = ({
           </div>
         )}
       </div>
+
+      {/* Mood Over Time */}
+      <MoodOverTimeChart entries={historyEntries} />
 
       {/* Grid: Actionable Takeaways & Brainstorming Ideas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
