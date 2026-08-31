@@ -12,6 +12,7 @@ import {
   deleteJournalEntry,
 } from './firebase/journalService';
 import { UserProfile, ChatMessage, JournalEntry, JournalSummary } from './types';
+import { findMoodOption } from './data/moodOptions';
 import { Navbar } from './components/Navbar';
 import { AuthCard } from './components/AuthCard';
 import { JournalChat } from './components/JournalChat';
@@ -34,6 +35,9 @@ export default function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentSummary, setCurrentSummary] = useState<JournalSummary | undefined>(undefined);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  // Manually-picked mood for the active entry. Falls back to the AI-derived
+  // emotionalTone (currentSummary.emotionalTone) whenever this is unset.
+  const [manualMood, setManualMood] = useState<string | undefined>(undefined);
 
   // History & List State
   const [historyEntries, setHistoryEntries] = useState<JournalEntry[]>([]);
@@ -151,6 +155,7 @@ export default function App() {
     setHasUnsavedChanges(false);
     setChatError(null);
     setLastUserMessage(null);
+    setManualMood(undefined);
     setActiveView('chat');
   };
 
@@ -165,10 +170,10 @@ export default function App() {
       messages,
       summary: currentSummary,
       tags: currentSummary?.keyThemes || [],
-      mood: currentSummary?.emotionalTone,
+      mood: manualMood || currentSummary?.emotionalTone,
       status: 'saved',
     };
-  }, [currentEntryId, currentUser, entryTitle, messages, currentSummary]);
+  }, [currentEntryId, currentUser, entryTitle, messages, currentSummary, manualMood]);
 
   // Save to Firestore with retry escalation
   const handleSaveCurrentEntry = async () => {
@@ -322,7 +327,7 @@ export default function App() {
           messages,
           summary: summaryData,
           tags: summaryData.keyThemes || [],
-          mood: summaryData.emotionalTone,
+          mood: manualMood || summaryData.emotionalTone,
           status: 'saved',
         };
         await saveJournalEntry(currentUser.uid, entryData);
@@ -345,6 +350,9 @@ export default function App() {
     setCurrentSummary(entry.summary);
     setHasUnsavedChanges(false);
     setChatError(null);
+    // Only restore the manual mood picker if the stored mood matches one of
+    // our fixed options - a free-text AI emotionalTone shouldn't look "picked".
+    setManualMood(findMoodOption(entry.mood)?.label);
     setActiveView('chat');
     addToast('info', 'Loaded Reflection', `Loaded "${entry.title}" into active workspace.`);
   };
@@ -431,6 +439,8 @@ export default function App() {
                 onRetryLastMessage={
                   lastUserMessage ? () => handleSendMessage(lastUserMessage) : undefined
                 }
+                manualMood={manualMood}
+                onSetMood={setManualMood}
               />
             )}
 
@@ -438,6 +448,7 @@ export default function App() {
               <SummaryInsights
                 summary={currentSummary}
                 entry={buildCurrentEntry()}
+                historyEntries={historyEntries}
                 onGenerateSummary={handleGenerateSummary}
                 isSummarizing={isSummarizing}
                 onSaveEntry={handleSaveCurrentEntry}
