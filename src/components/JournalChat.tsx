@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { ChatMessage, PromptStarter, UserProfile } from '../types';
 import { PromptStarterBar } from './PromptStarterBar';
+import { MoodPicker } from './MoodPicker';
 import { formatDate } from '../utils/sanitizer';
 
 interface JournalChatProps {
@@ -34,6 +35,8 @@ interface JournalChatProps {
   hasUnsavedChanges: boolean;
   errorMessage: string | null;
   onRetryLastMessage?: () => void;
+  manualMood: string | undefined;
+  onSetMood: (mood: string | undefined) => void;
 }
 
 export const JournalChat: React.FC<JournalChatProps> = ({
@@ -51,6 +54,8 @@ export const JournalChat: React.FC<JournalChatProps> = ({
   hasUnsavedChanges,
   errorMessage,
   onRetryLastMessage,
+  manualMood,
+  onSetMood,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -167,6 +172,9 @@ export const JournalChat: React.FC<JournalChatProps> = ({
             )}
             <span>{isSummarizing ? 'Synthesizing...' : 'Summarize & Brainstorm'}</span>
           </button>
+
+          {/* Manual Mood Picker (falls back to AI-derived emotionalTone when unset) */}
+          <MoodPicker selectedMood={manualMood} onSelectMood={onSetMood} />
 
           {/* Save to Firestore */}
           <button
